@@ -1,0 +1,29 @@
+{
+  "name": "my-esp8266-project",
+  "version": "0.0.1",
+  "description": "Espruino Boilerplate for ESP8266 server",
+  "main": "index.js",
+  "scripts": {
+    "erase": "esptool.py --port COM8 erase_flash",
+    "flash": "esptool.py --port COM8 --baud 115200 write_flash --flash_freq 80m  -fm dio --flash_size 4MB 0x0000 firmware/boot_v1.6.bin 0x1000 firmware/espruino_esp8266_user1.bin 0x3FC000 firmware/esp_init_data_default.bin 0x3FE000 firmware/blank.bin",
+    "reset": "npm run erase && npm run flash",
+    "reupload": "npm run reset && npm run upload",
+    "build": "npx babel src --out-file index.js",
+    "uglify": "uglifyjs src/* --compress --mangle -o ./index.js ",
+    "upload": "npm run build && espruino -p COM8 -b 115200 --board boards/ESP8266_4MB.json -e \"save()\" index.js",
+    "screen": "screen COM8 115200"
+  },
+  "author": "Joe Stansbury",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.5.0",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-eslint": "^10.0.2",
+    "babel-preset-minify": "^0.5.1",
+    "eslint": "^6.2.2",
+    "espruino": "0.1.28"
+  }
+}

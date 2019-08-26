@@ -1,0 +1,23 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": false,
+        "modules": false
+      }
+    ],
+    [
+      "minify",
+      {
+        "evaluate": false,
+        "mangle": true
+      }
+    ]
+  ],
+  "plugins": [
+    ["@babel/plugin-transform-modules-commonjs", { "noInterop": true }],
+    "@babel/plugin-transform-runtime"
+  ],
+  "comments": false
+}
