@@ -1,17 +1,15 @@
 {
-  "name": "my-esp8266-project",
+  "name": "wifi-car",
   "version": "0.0.1",
-  "description": "Espruino Boilerplate for ESP8266 server",
+  "description": "Wifi car using ESP8266",
   "main": "index.js",
   "scripts": {
     "erase": "esptool.py --port COM8 erase_flash",
     "flash": "esptool.py --port COM8 --baud 115200 write_flash --flash_freq 80m  -fm dio --flash_size 4MB 0x0000 firmware/boot_v1.6.bin 0x1000 firmware/espruino_esp8266_user1.bin 0x3FC000 firmware/esp_init_data_default.bin 0x3FE000 firmware/blank.bin",
-    "reset": "npm run erase && npm run flash",
-    "reupload": "npm run reset && npm run upload",
+    "flash-esp32": "esptool.py --port COM5 --chip esp32 --baud 115200 write_flash --flash_freq 40m -fm dio -z --flash_size detect 0x1000 firmware-esp32/bootloader.bin 0x8000 firmware-esp32/partitions_espruino.bin 0x10000 firmware-esp32/espruino_esp32.bin",
     "build": "npx babel src --out-file index.js",
-    "uglify": "uglifyjs src/* --compress --mangle -o ./index.js ",
     "upload": "npm run build && espruino -p COM8 -b 115200 --board boards/ESP8266_4MB.json -e \"save()\" index.js",
-    "screen": "screen COM8 115200"
+    "upload-esp32": "npm run build && espruino -p COM5 -b 115200 --board boards/ESP32.json -e \"save()\" index.js"
   },
   "author": "Joe Stansbury",
   "license": "ISC",
