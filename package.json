@@ -4,10 +4,12 @@
   "description": "Wifi car using ESP8266",
   "main": "index.js",
   "scripts": {
-    "erase": "esptool.py --port COM8 erase_flash",
-    "flash": "esptool.py --port COM8 --baud 115200 write_flash --flash_freq 80m  -fm dio --flash_size 4MB 0x0000 firmware/boot_v1.6.bin 0x1000 firmware/espruino_esp8266_user1.bin 0x3FC000 firmware/esp_init_data_default.bin 0x3FE000 firmware/blank.bin",
+    "flash": "lowsync flash COM5 --init",
     "build": "npx babel src --out-file index.js",
-    "upload": "npm run build && espruino -p COM8 -b 115200 --board boards/ESP8266_4MB.json -e \"save()\" index.js"
+    "help": "lowsync --help",
+    "init": "lowsync init",
+    "sync": "npm run build && lowsync",
+    "test": "lowsync settings set wifi.mode=\"station\""
   },
   "author": "Joe Stansbury",
   "license": "ISC",
@@ -20,6 +22,9 @@
     "babel-eslint": "^10.0.2",
     "babel-preset-minify": "^0.5.1",
     "eslint": "^6.2.2",
-    "espruino": "0.1.28"
+    "lowsync": "^1.0.24"
+  },
+  "dependencies": {
+    "source-map-support": "^0.5.13"
   }
 }

@@ -2,11 +2,11 @@ import * as wifi from "Wifi";
 import { createServer } from "ws";
 
 const pin = {
-  forward: NodeMCU.D1,
-  reverse: NodeMCU.D5,
-  left: NodeMCU.D2,
-  right: NodeMCU.D3,
-  led: NodeMCU.D4
+  forward: D1,
+  reverse: D5,
+  left: D2,
+  right: D3,
+  led: D2
 };
 
 const ap = {
