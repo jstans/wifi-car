@@ -140,8 +140,8 @@ const createAP = () => {
 const servePage = (res, data) => {
   let i = 0;
   const process = () => {
-    const buf = data.substr(i, 200);
-    i += 200;
+    const buf = data.substr(i, 100);
+    i += 100;
     i >= data.length ? res.end(buf) : res.write(buf);
   };
   res.on("drain", process);
@@ -168,10 +168,8 @@ const appHtml = `
       }
       button {
         margin: 10px;
-        display: flex;
+        font-size: 2rem;
         flex-basis: calc(50% - 20px);
-        justify-content: center;
-        flex-direction: column;
       }
     </style>
   </head>
@@ -181,8 +179,21 @@ const appHtml = `
     <button id="right">Right</button>
     <button id="reverse">Reverse</button>
     <script>
-      var ws = new WebSocket("ws://" + location.host, "protocolOne");
-    
+      var ws;
+
+      function connect() {
+        ws = new WebSocket("ws://" + location.host, "protocolOne");
+        ws.onopen = function () {
+          document.body.style.backgroundColor = 'green';
+        };
+        ws.onclose = function() {
+          document.body.style.backgroundColor = 'red';
+          setTimeout(connect, 1000);
+        };
+      }
+
+      connect();
+
       var _timer = null;
     
       var forward = function() { ws.send(JSON.stringify({ type: "CAR", payload: "forward" })) };
