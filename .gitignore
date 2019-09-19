@@ -1,4 +1,5 @@
-index.js
+/index.js
+src/files.json
 
 .DS_Store
 dist

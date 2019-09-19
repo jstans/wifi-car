@@ -1,5 +1,6 @@
 import * as wifi from "Wifi";
 import { createServer } from "ws";
+import * as files from "files.json";
 
 const pin = {
   forward: NodeMCU.D1,
@@ -134,7 +135,10 @@ const searchForWifi = () => {
 
 const createAP = () => {
   wifi.disconnect();
-  wifi.startAP("wifi-car", { password: "slateapps", authMode: "wpa_wpa2" });
+  wifi.startAP("wifi-car", {
+    password: process.env.AP_PASS,
+    authMode: "wpa_wpa2"
+  });
 };
 
 const servePage = (res, data) => {
@@ -148,116 +152,21 @@ const servePage = (res, data) => {
   process();
 };
 
-// <link rel="stylesheet" href="app.css"></link>
-
-const appHtml = `
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-      }
-      body {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-      }
-      button {
-        margin: 10px;
-        font-size: 2rem;
-        flex-basis: calc(50% - 20px);
-      }
-    </style>
-  </head>
-  <body>
-    <button id="left">Left</button>
-    <button id="forward">Forward</button>
-    <button id="right">Right</button>
-    <button id="reverse">Reverse</button>
-    <script>
-      var ws;
-
-      function connect() {
-        ws = new WebSocket("ws://" + location.host, "protocolOne");
-        ws.onopen = function () {
-          document.body.style.backgroundColor = 'green';
-        };
-        ws.onclose = function() {
-          document.body.style.backgroundColor = 'red';
-          setTimeout(connect, 1000);
-        };
-      }
-
-      connect();
-
-      var _timer = null;
-    
-      var forward = function() { ws.send(JSON.stringify({ type: "CAR", payload: "forward" })) };
-      var reverse = function() { ws.send(JSON.stringify({ type: "CAR", payload: "reverse" })) };
-      var stop = function() { ws.send(JSON.stringify({ type: "CAR", payload: "stop" })) };
-      var left = function() { ws.send(JSON.stringify({ type: "CAR", payload: "left" })) };
-      var right = function() { ws.send(JSON.stringify({ type: "CAR", payload: "right" })) };
-      var straight = function() { ws.send(JSON.stringify({ type: "CAR", payload: "straight" })) };
-    
-      var driveStart = function(e,func) {
-        e.preventDefault();
-        clearInterval(_timer);
-        _timer = setInterval(func, 100);
-        func();
-      }
-      var driveEnd = function(e) {
-        e.preventDefault();
-        clearInterval(_timer);
-        stop();
-      }
-      var turn = function(e, func) {
-        e.preventDefault();
-        func();
-        document.addEventListener("mouseup", straight);
-        document.addEventListener("touchend", straight);
-      }
-
-      document.getElementById("forward").addEventListener("mousedown", e => driveStart(e,forward));
-      document.getElementById("forward").addEventListener("touchstart", e => driveStart(e,forward));
-      document.getElementById("forward").addEventListener("mouseup", driveEnd);
-      document.getElementById("forward").addEventListener("touchend", driveEnd);
-    
-      document.getElementById("reverse").addEventListener("mousedown", e => driveStart(e,reverse));
-      document.getElementById("reverse").addEventListener("touchstart", e => driveStart(e,reverse));
-      document.getElementById("reverse").addEventListener("mouseup", driveEnd);
-      document.getElementById("reverse").addEventListener("touchend", driveEnd);
-    
-      document.getElementById("left").addEventListener("mousedown", e => turn(e, left));
-      document.getElementById("left").addEventListener("touchstart", e => turn(e, left));
-      
-      document.getElementById("right").addEventListener("mousedown", e => turn(e, right));
-      document.getElementById("right").addEventListener("touchstart", e => turn(e, right));
-    </script>
-  </body>
-</html>
-`;
-
 const init = () => {
   let clients = [];
+  const http = new WebServer({
+    port: 80,
+    default_type: "text/html",
+    default_index: "index.html",
+    memory: files
+  }).createServer();
   createServer((req, res) => {
     const request = url.parse(req.url, true);
-    // if (request.pathname == "/app.js") {
-    //   res.writeHead(200, { "Content-Type": "text/javascript" });
-    //   servePage(res, appJs);
-    //   return;
-    // }
-    // if (request.pathname == "/app.css") {
-    //   res.writeHead(200, { "Content-Type": "text/css" });
-    //   servePage(res, appCss);
-    //   return;
-    // }
-    if (request.pathname == "/") {
-      res.writeHead(200, { "Content-Type": "text/html" });
-      servePage(res, appHtml);
+    const file =
+      files["/" + request.pathname === "/" ? "index.html" : request.pathname];
+    if (file) {
+      res.writeHead(200, { "Content-Type": file.type });
+      servePage(res, file.contents);
     } else {
       res.writeHead(404);
       res.end();
@@ -269,6 +178,10 @@ const init = () => {
       useBlink(3, 100, 100);
       clients.push(ws);
       ws.on("message", evt => {
+        if (evt === "PING") {
+          ws.send("PONG");
+          return;
+        }
         const event = JSON.parse(evt);
         switch (event.type) {
           case "AP":
